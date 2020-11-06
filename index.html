@@ -1,0 +1,39 @@
+<html>
+<head>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+<div id="histogram"></div>
+</body>
+</html>
+<script>
+var historgram = document.getElementById("histogram")
+
+Plotly.d3.json('/data', function(data) {
+
+  var layout = {
+    title: 'Korona STOP LT programėlės pateiktų TemporaryExposureKey kiekio statistika',
+    xaxis: {
+      type: 'date',
+      tickformat: '%Y-%m-%d',
+      autotick: false,
+    },
+    yaxis: {
+      dtick: 1,
+      autorange: true,
+      title: "Pateiktų TemporaryExposureKey kiekis",
+    }
+  };
+
+  console.log(Object.keys(data))
+  console.log(Object.values(data))
+
+  var trace = {
+    x: Object.keys(data),
+    y: Object.values(data),
+    type: "scatter",
+  }
+  Plotly.plot(histogram, [ trace ], layout)
+})
+</script>
+
