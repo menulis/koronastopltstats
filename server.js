@@ -12,16 +12,19 @@ app.use(express.static('express'))
 app.use(express.static('.'))
 app.use('/data', async function(req, res) {
     protobuf.load("gaen.proto", async function (err, root) {
-      var TemporaryExposureKeyExport = root.lookupType("TemporaryExposureKeyExport")
-
-      var dateResp = await fetch('https://download.cwa.kryptis.lt/version/v1/diagnosis-keys/country/LT/date')
-      var dates = await dateResp.json()
       var counters = {}
+      try {
+        var TemporaryExposureKeyExport = root.lookupType("TemporaryExposureKeyExport")
+        var dateResp = await fetch('https://download.cwa.kryptis.lt/version/v1/diagnosis-keys/country/LT/date')
+        var dates = await dateResp.json()
 
-      for (const date of dates) {
-        var keys = await getFile(`https://download.cwa.kryptis.lt/version/v1/diagnosis-keys/country/LT/date/${date}`, 'export.bin')
-        var keyExport = TemporaryExposureKeyExport.decode(keys)
-        counters[date] = keyExport["keys"].length
+        for (const date of dates) {
+          var keys = await getFile(`https://download.cwa.kryptis.lt/version/v1/diagnosis-keys/country/LT/date/${date}`, 'export.bin')
+          var keyExport = TemporaryExposureKeyExport.decode(keys)
+          counters[date] = keyExport["keys"].length
+        }
+      } catch (e) {
+        console.log(e)
       }
 
       res.send(counters)
