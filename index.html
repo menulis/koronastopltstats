@@ -1,6 +1,6 @@
 <html>
 <head>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js">Kraunama...</script>
 </head>
 <body>
 <div id="histogram"></div>
@@ -9,31 +9,31 @@
 <script>
 var historgram = document.getElementById("histogram")
 
-Plotly.d3.json('/data', function(data) {
-
+Plotly.d3.json('/data', function(error, data) {
+  if (error) {
+    console.log(error)
+    historgram.innerHTML = 'Kažkas negerai: ' + error.statusText
+    return
+  }
   var layout = {
     title: 'Korona STOP LT programėlės pateiktų TemporaryExposureKey kiekio statistika',
     xaxis: {
-      type: 'date',
-      tickformat: '%Y-%m-%d',
-      autotick: false,
+      type: 'category',
+      tickformat: '%Y-%m-%d %H',
     },
     yaxis: {
       dtick: 1,
       autorange: true,
-      title: "Pateiktų TemporaryExposureKey kiekis",
+      title: 'Pateiktų TemporaryExposureKey kiekis',
     }
-  };
-
-  console.log(Object.keys(data))
-  console.log(Object.values(data))
+  }
 
   var trace = {
-    x: Object.keys(data),
-    y: Object.values(data),
-    type: "scatter",
+    x: data.map(o => o['date']),
+    y: data.map(o => o['count']),
+    type: 'scatter',
   }
+
   Plotly.plot(histogram, [ trace ], layout)
 })
 </script>
-

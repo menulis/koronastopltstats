@@ -10,6 +10,8 @@
         "node-fetch": "^2.6.1",
         "protobufjs": "^6.10.1",
         "request": "^2.88.2",
-        "unzipper": "^0.10.11"
+        "unzipper": "^0.10.11",
+        "xmldom": "^0.4.0",
+        "xpath": "0.0.32"
     }
 }
