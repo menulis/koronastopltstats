@@ -22,8 +22,8 @@ Plotly.d3.json('/data', function(error, data) {
   var layout = {
     title: 'Korona STOP LT programėlės pateiktų TemporaryExposureKey kiekio statistika',
     xaxis: {
-      type: 'category',
-      tickformat: '%Y-%m-%d %H',
+      type: 'date',
+      tickformat: '%m/%d %H val.',
     },
     yaxis: {
       dtick: 1,
