@@ -1,8 +1,9 @@
 <html>
 <head>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js">Kraunama...</script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
+<div id="loading">Kraunama...</div>
 <div id="histogram"></div>
 </body>
 </html>
@@ -15,6 +16,9 @@ Plotly.d3.json('/data', function(error, data) {
     historgram.innerHTML = 'Kažkas negerai: ' + error.statusText
     return
   }
+
+  document.getElementById("loading").style.visibility = "hidden"
+
   var layout = {
     title: 'Korona STOP LT programėlės pateiktų TemporaryExposureKey kiekio statistika',
     xaxis: {
