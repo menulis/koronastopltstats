@@ -1,43 +1,59 @@
 <html>
 <head>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="http://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
 <div id="loading">Kraunama...</div>
-<div id="histogram"></div>
+<div id="histogramLT"></div>
+<div id="histogramDE"></div>
 </body>
 </html>
 <script>
-var historgram = document.getElementById("histogram")
-
-Plotly.d3.json('/data', function(error, data) {
-  if (error) {
-    console.log(error)
-    historgram.innerHTML = 'Kažkas negerai: ' + error.statusText
-    return
-  }
-
+Promise.all([
+  d3.json('/data/LT/daily'),
+  d3.json('/data/LT/hourly'),
+  d3.json('/data/DE/daily'),
+  d3.json('/data/DE/hourly')
+]).then(function([dailyLt, hourlyLt, dailyDe, hourlyDe]) {
   document.getElementById("loading").style.visibility = "hidden"
+  plot('LT', 'Korona Stop LT programėlės pateiktų TemporaryExposureKey kiekio statistika', dailyLt, hourlyLt)
+  plot('DE', 'Vokiškos Corona Warn App programėlės pateiktų TemporaryExposureKey kiekio statistika', dailyDe, hourlyDe)
+}).catch(function(error) {
+  console.log(error)
+  document.getElementById("loading").innerHTML = 'Kažkas negerai: ' + error.statusText
+})
+
+function plot(cc, title, daily, hourly) {
+  var histogram = document.getElementById("histogram" + cc)
 
   var layout = {
-    title: 'Korona STOP LT programėlės pateiktų TemporaryExposureKey kiekio statistika',
+    title: title,
     xaxis: {
       type: 'date',
-      tickformat: '%m/%d %H val.',
+      tickformat: '%m/%d',
     },
     yaxis: {
-      dtick: 1,
-      autorange: true,
+      rangemode: 'tozero',
       title: 'Pateiktų TemporaryExposureKey kiekis',
     }
   }
 
-  var trace = {
-    x: data.map(o => o['date']),
-    y: data.map(o => o['count']),
+  var dailyTrace = {
+    x: daily.map(o => o['date']),
+    y: daily.map(o => o['count']),
+    type: 'scatter',
+    name: 'Dieniniai raktų failai'
+  }
+
+  var hourlyTrace = {
+    x: hourly.map(o => o['date']),
+    y: hourly.map(o => o['count']),
+    name: 'Valandiniai raktų failai',
     type: 'scatter',
   }
 
-  Plotly.plot(histogram, [ trace ], layout)
-})
+  Plotly.plot(histogram, [ dailyTrace, hourlyTrace ], layout)
+}
+
 </script>

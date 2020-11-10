@@ -5,32 +5,53 @@ const express = require('express')
 const app = express()
 const unzipper = require('unzipper')
 const protobuf = require('protobufjs')
-var xpath = require('xpath')
-var dom = require('xmldom').DOMParser
+const { response } = require('express')
 
-const url = 'https://download.koronastop.lt'
+const urls = {
+  'LT': 'https://download.koronastop.lt',
+  'DE': 'https://svc90.main.px.t-online.de'
+}
  
 app.use(express.json())
 app.use(express.static('express'))
 app.use(express.static('.'))
-app.use('/data', async function(req, res) {
+app.get('/data/:countryCode/:type', async function(req, res) {
     protobuf.load("gaen.proto", async function (err, root) {
-      var counters = {}
-      // res.send([{"date": "2020-10-10T12:00:00", "count": 1}, {"date": "2020-10-10T14:00:00", "count": 3}])
+      const cc = req.params.countryCode
+      const type = req.params.type
+      const url = urls[cc]
       try {
-        var TemporaryExposureKeyExport = root.lookupType("TemporaryExposureKeyExport")
-        var select = xpath.useNamespaces({"s3": "http://s3.amazonaws.com/doc/2006-03-01/"});
-        var listBucketResult = await fetch(url)
-        if (!listBucketResult.ok) {
-          throw new Error(listBucketResult.statusText)
+        const TemporaryExposureKeyExport = root.lookupType("TemporaryExposureKeyExport")
+        const datesResp = await fetch(`${url}/version/v1/diagnosis-keys/country/${cc}/date`)
+        if (!datesResp.ok) {
+          throw new Error(datesResp.statusText)
         }
-        var xml = await listBucketResult.text()
-        var doc = await new dom().parseFromString(xml)
-        var hourlyKeyFiles = await select("//s3:Key[contains(text(), '/hour/')]/text()", doc)
-          .map(node => node.nodeValue)
-          .sort(function(a, b) { return extractDate(a) > extractDate(b) ? 1 : -1 })
-          .map(hourlyKeyFile => extractKeyCount(url, hourlyKeyFile, 'export.bin', TemporaryExposureKeyExport))
-        var counters = await Promise.all(hourlyKeyFiles)
+        const dates = await datesResp.json()
+        const dailyFiles = dates.map(date => `${url}/version/v1/diagnosis-keys/country/${cc}/date/${date}`)
+
+        const hourlyFiles = [].concat.apply([], await Promise.all(
+          dailyFiles
+            .map(dailyFile =>
+              fetch(`${dailyFile}/hour`)
+                .then(response => response.json())
+                .then(hours => hours.map(hour => `${dailyFile}/hour/${hour}`))
+            )
+        ))
+        const files = type == "hourly" ? hourlyFiles : dailyFiles
+
+        let requests = []
+        let counters = []
+        while (files.length) {
+          requests.push(files.shift())
+          if (requests.length == 100 || files.length == 0) { // Max 100 requests at a time
+            let partialCounters = await Promise.all(
+              requests.map(file => extractKeyCount(file, 'export.bin', TemporaryExposureKeyExport))
+            )
+            counters.push(...partialCounters)
+            requests = []
+          }
+        }
+
         res.send(counters)
       } catch (e) {
         console.log(e)
@@ -47,19 +68,22 @@ const port = process.env.PORT || 3000
 server.listen(port)
 console.debug('Server listening on port ' + port)
 
-async function extractKeyCount(url, path, fileName, TemporaryExposureKeyExport) {
-  const directory = await unzipper.Open.url(request, url + '/' + path)
+async function extractKeyCount(url, fileName, TemporaryExposureKeyExport) {
+  const directory = await unzipper.Open.url(request, url)
   const file = directory.files.find(d => d.path === fileName)
   const content = await file.buffer()
   const keys = content.slice(16)
-  const hour = extractDate(path)
-  var keyExport = TemporaryExposureKeyExport.decode(keys)
-  return { "date": hour, "count": keyExport["keys"].length }
+  const temporaryExposureKeyExport = TemporaryExposureKeyExport.decode(keys)
+  return { "date": extractDate(url), "count": temporaryExposureKeyExport["keys"].length + temporaryExposureKeyExport["revisedKeys"].length }
 }
 
 function extractDate(keyValue) {
   var elems = keyValue.split("/")
-  var hour = `0${elems[elems.length - 1]}:00:00`.slice(-8)
-  var date = elems[elems.length - 3]
-  return `${date}T${hour}`
+  if (keyValue.includes("hour")) {
+    var hour = `0${elems[elems.length - 1]}:00:00`.slice(-8)
+    var date = elems[elems.length - 3]
+    return `${date}T${hour}`
+  } else {
+    return elems[elems.length - 1]
+  }
 }
