@@ -11,6 +11,11 @@ const urls = {
   'LT': 'https://download.koronastop.lt',
   'DE': 'https://svc90.main.px.t-online.de'
 }
+
+const maxRequests = {
+  'LT': 5,
+  'DE': 100
+}
  
 app.use(express.json())
 app.use(express.static('express'))
@@ -43,7 +48,7 @@ app.get('/data/:countryCode/:type', async function(req, res) {
         let counters = []
         while (files.length) {
           requests.push(files.shift())
-          if (requests.length == 15 || files.length == 0) { // Max 15 requests at a time
+          if (requests.length == maxRequests[cc] || files.length == 0) {
             let partialCounters = await Promise.all(
               requests.map(file => extractKeyCount(file, 'export.bin', TemporaryExposureKeyExport))
             )
