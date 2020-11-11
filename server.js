@@ -43,7 +43,7 @@ app.get('/data/:countryCode/:type', async function(req, res) {
         let counters = []
         while (files.length) {
           requests.push(files.shift())
-          if (requests.length == 100 || files.length == 0) { // Max 100 requests at a time
+          if (requests.length == 15 || files.length == 0) { // Max 15 requests at a time
             let partialCounters = await Promise.all(
               requests.map(file => extractKeyCount(file, 'export.bin', TemporaryExposureKeyExport))
             )
