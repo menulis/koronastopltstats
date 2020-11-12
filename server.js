@@ -13,7 +13,7 @@ const urls = {
 }
 
 const maxRequests = {
-  'LT': 5,
+  'LT': 10,
   'DE': 100
 }
  
