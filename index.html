@@ -1,5 +1,6 @@
 <html>
 <head>
+  <title>Korona Stop LT programėlės pateiktų TemporaryExposureKey kiekio statistika</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
@@ -13,15 +14,12 @@
 Promise.all([
   d3.json('/data/LT/daily'),
   d3.json('/data/LT/hourly'),
-  d3.json('/data/DE/daily'),
-  d3.json('/data/DE/hourly')
 ]).then(function([dailyLt, hourlyLt, dailyDe, hourlyDe]) {
   document.getElementById("loading").style.visibility = "hidden"
   plot('LT', 'Korona Stop LT programėlės pateiktų TemporaryExposureKey kiekio statistika', dailyLt, hourlyLt)
-  plot('DE', 'Vokiškos Corona Warn App programėlės pateiktų TemporaryExposureKey kiekio statistika', dailyDe, hourlyDe)
 }).catch(function(error) {
   console.log(error)
-  document.getElementById("loading").innerHTML = 'Kažkas negerai: ' + error.statusText
+  document.getElementById("loading").innerHTML = 'Kažkas negerai: ' + error
 })
 
 function plot(cc, title, daily, hourly) {
