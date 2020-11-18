@@ -1,0 +1,49 @@
+<html>
+<head>
+  <title>Korona Stop LT programėlės pateiktų TemporaryExposureKey kiekio statistika</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<div id="loading">Kraunama...</div>
+<div id="histogramLT"></div>
+<div id="histogramDE"></div>
+</body>
+</html>
+<script>
+d3
+  .json('/data/LT/daily')
+  .then(function(dailyLt) {
+    document.getElementById("loading").style.visibility = "hidden"
+    plot('LT', 'Korona Stop LT programėlės pateiktų TemporaryExposureKey kiekio statistika', dailyLt)
+}).catch(function(error) {
+  console.log(error)
+  document.getElementById("loading").innerHTML = 'Kažkas negerai: ' + error
+})
+
+function plot(cc, title, daily) {
+  var histogram = document.getElementById("histogram" + cc)
+
+  var layout = {
+    title: title,
+    xaxis: {
+      type: 'date',
+      tickformat: '%m/%d',
+    },
+    yaxis: {
+      rangemode: 'tozero',
+      title: 'Pateiktų TemporaryExposureKey kiekis',
+    }
+  }
+
+  var dailyTrace = {
+    x: daily.map(o => o['date']),
+    y: daily.map(o => o['count']),
+    type: 'scatter',
+    // name: 'Dieniniai raktų failai'
+  }
+
+  Plotly.plot(histogram, [ dailyTrace ] , layout)
+}
+
+</script>
