@@ -1,0 +1,47 @@
+<html>
+<head>
+  <title>TemporaryExposureKey uploaded from Smittestopp app stats</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<div id="loading">Loading...</div>
+<div id="histogramNO"></div>
+</body>
+</html>
+<script>
+d3
+  .json('/data/NO')
+  .then(function(data) {
+    document.getElementById("loading").style.visibility = "hidden"
+    plot('NO', '# of TemporaryExposureKey uploaded from Smittestopp app', data)
+}).catch(function(error) {
+  console.log(error)
+  document.getElementById("loading").innerHTML = 'Error: ' + error
+})
+
+function plot(cc, title, daily) {
+  var histogram = document.getElementById("histogram" + cc)
+
+  var layout = {
+    title: title,
+    xaxis: {
+      type: 'date',
+      tickformat: '%m/%d',
+    },
+    yaxis: {
+      rangemode: 'tozero',
+      title: 'Uploaded TemporaryExposureKey count',
+    }
+  }
+
+  var dailyTrace = {
+    x: daily.map(o => o['date']),
+    y: daily.map(o => o['count']),
+    type: 'scatter',
+  }
+
+  Plotly.plot(histogram, [ dailyTrace ] , layout)
+}
+
+</script>
