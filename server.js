@@ -43,7 +43,9 @@ app.get('/data/NO', async function(req, res) {
     currentDate.setDate(currentDate.getDate() + 1)
   }
 
-  res.send(counters)
+  res.send(
+    Object.entries(counters).map(el => ({'date': el[0], 'count': el[1]}))
+  )
 
 })
 
