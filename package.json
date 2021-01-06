@@ -8,8 +8,8 @@
     "dependencies": {
         "express": "^4.17.1",
         "get-stream": "^6.0.0",
-        "protobufjs": "^6.10.1",
-        "undici": "^2.2.0",
+        "protobufjs": "^6.10.2",
+        "undici": "^3.0.0",
         "unzipper": "^0.10.11"
     }
 }
