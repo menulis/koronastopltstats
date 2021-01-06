@@ -1,0 +1,53 @@
+<html>
+<head>
+  <title>TemporaryExposureKey stats</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<div id="loading">Loading...</div>
+<div id="histogramLT"></div>
+<div id="histogramDE"></div>
+<div id="histogramNO"></div>
+</body>
+</html>
+<script>
+Promise.all([
+  d3.json('/data/LT/daily'),
+  d3.json('/data/DE/daily'),
+  d3.json('/data/NO'),
+]).then(function([dailyLt, dailyDe, dailyNo]) {
+  document.getElementById("loading").style.visibility = "hidden"
+  plot('LT', 'Korona Stop LT upload TemporaryExposureKey stats', dailyLt)
+  plot('DE', 'Corona-Warn-App (DE) upload TemporaryExposureKey stats', dailyDe)
+  plot('NO', 'Smittestopp (NO) upload TemporaryExposureKey stats', dailyNo)
+}).catch(function(error) {
+  console.log(error)
+  document.getElementById("loading").innerHTML = 'Error: ' + error
+})
+
+function plot(cc, title, daily) {
+  var histogram = document.getElementById("histogram" + cc)
+
+  var layout = {
+    title: title,
+    xaxis: {
+      type: 'date',
+      tickformat: '%m/%d',
+    },
+    yaxis: {
+      rangemode: 'tozero',
+      title: 'Uploaded TemporaryExposureKey count',
+    }
+  }
+
+  var dailyTrace = {
+    x: daily.map(o => o['date']),
+    y: daily.map(o => o['count']),
+    type: 'scatter',
+  }
+
+  Plotly.plot(histogram, [ dailyTrace ] , layout)
+}
+
+</script>
